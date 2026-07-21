@@ -10,7 +10,7 @@ import javafx.scene.layout.StackPane;
  * ventana vacía para validar que el esqueleto del proyecto compila
  * y ejecuta correctamente.
  *
- * @author Daniel, Nicolás, Rober
+ * @author Daniel, Nicolás, Robert
  */
 public class HelloApplication extends Application {
 

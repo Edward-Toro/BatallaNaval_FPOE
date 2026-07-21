@@ -19,4 +19,4 @@ mvn javafx:run
 
 ## Autores
 
-Daniel, Nicolás, Rober
+Daniel, Nicolás, Robert
