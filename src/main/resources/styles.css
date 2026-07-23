@@ -1,3 +1,260 @@
+.root {
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-background-color: #0b1421;
+    -fx-text-fill: #e0e6ed;
+}
+
+
 .nav-bar {
-    -fx-background-color: linear-gradient(to bottom right, #1d2c3a, #474857);
+    -fx-background-color: linear-gradient(to bottom, #1d2c3a, #152238);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 2);
+    -fx-border-color: transparent transparent #2a3f55 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 24 0 24;
+}
+
+.nav-bar .label {
+    -fx-text-fill: #c8d6e5;
+    -fx-font-size: 13px;
+    -fx-font-weight: normal;
+}
+
+
+.btn-primary {
+    -fx-background-color: linear-gradient(to bottom, #2980b9, #1a5276);
+    -fx-text-fill: #ecf0f1;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 8 20 8 20;
+    -fx-cursor: hand;
+    -fx-border-color: #3498db;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 4, 0, 0, 1);
+}
+
+.btn-primary:hover {
+    -fx-background-color: linear-gradient(to bottom, #3498db, #2471a3);
+    -fx-border-color: #5dade2;
+}
+
+.btn-primary:pressed {
+    -fx-background-color: linear-gradient(to bottom, #1a5276, #154360);
+    -fx-scale-x: 0.97;
+    -fx-scale-y: 0.97;
+}
+
+
+.game-container {
+    -fx-background-color: #0b1421;
+    -fx-padding: 0;
+}
+
+
+.board-section {
+    -fx-background-color: transparent;
+    -fx-padding: 16 24 16 24;
+}
+
+.board-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #85929e;
+    -fx-padding: 0 0 12 0;
+    -fx-text-fill: #aeb6bf;
+}
+
+
+.board-panel {
+    -fx-background-color: linear-gradient(to bottom, #0f1d2e, #111f33);
+    -fx-background-radius: 12;
+    -fx-border-color: #1e3a5f;
+    -fx-border-width: 2;
+    -fx-border-radius: 12;
+    -fx-padding: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 12, 0, 0, 4);
+}
+
+
+.col-header {
+    -fx-background-color: transparent;
+    -fx-alignment: CENTER;
+    -fx-min-width: 42;
+    -fx-min-height: 24;
+    -fx-max-width: 42;
+    -fx-max-height: 24;
+}
+
+.col-header .label {
+    -fx-text-fill: #5d7b96;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+
+.row-header {
+    -fx-background-color: transparent;
+    -fx-alignment: CENTER;
+    -fx-min-width: 24;
+    -fx-min-height: 42;
+    -fx-max-width: 24;
+    -fx-max-height: 42;
+}
+
+.row-header .label {
+    -fx-text-fill: #5d7b96;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+
+.corner-spacer {
+    -fx-min-width: 24;
+    -fx-min-height: 24;
+    -fx-max-width: 24;
+    -fx-max-height: 24;
+}
+
+.grid-cell {
+    -fx-min-width: 42;
+    -fx-min-height: 42;
+    -fx-max-width: 42;
+    -fx-max-height: 42;
+    -fx-alignment: CENTER;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-cursor: hand;
+    -fx-border-color: rgba(30, 58, 95, 0.5);
+    -fx-border-width: 1;
+    -fx-background-insets: 0;
+}
+
+.cell-vacia {
+    -fx-background-color: linear-gradient(to bottom, #0e2a3d, #0a1f2f);
+    -fx-border-color: rgba(20, 50, 80, 0.6);
+}
+
+.cell-vacia:hover {
+    -fx-background-color: linear-gradient(to bottom, #133750, #0e2a3d);
+    -fx-border-color: #2980b9;
+    -fx-effect: dropshadow(gaussian, rgba(41,128,185,0.3), 6, 0, 0, 0);
+}
+
+.cell-ocupada {
+    -fx-background-color: linear-gradient(to bottom, #1a3a5c, #15304a);
+    -fx-border-color: #2471a3;
+    -fx-border-width: 1.5;
+}
+
+.cell-ocupada:hover {
+    -fx-background-color: linear-gradient(to bottom, #1e4068, #1a3a5c);
+}
+
+.cell-agua {
+    -fx-background-color: linear-gradient(to bottom, #0c2d48, #091e30);
+    -fx-border-color: rgba(30, 58, 95, 0.4);
+    -fx-cursor: default;
+}
+
+.cell-tocado {
+    -fx-background-color: linear-gradient(to bottom, #7b241c, #922b21);
+    -fx-border-color: #e74c3c;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(231,76,60,0.4), 6, 0, 0, 0);
+    -fx-cursor: default;
+}
+
+.cell-hundido {
+    -fx-background-color: linear-gradient(to bottom, #4a1a1a, #3b1414);
+    -fx-border-color: #922b21;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(146,43,33,0.3), 4, 0, 0, 0);
+    -fx-cursor: default;
+}
+
+.cell-vacia .label,
+.grid-cell .label {
+    -fx-font-size: 18px;
+}
+
+.cell-tocado .label {
+    -fx-text-fill: #f5b7b1;
+}
+
+.cell-hundido .label {
+    -fx-text-fill: #f1948a;
+}
+
+.cell-agua .label {
+    -fx-text-fill: #5d7b96;
+    -fx-font-size: 14px;
+}
+
+.board-separator {
+    -fx-background-color: transparent;
+    -fx-min-width: 1;
+    -fx-max-width: 1;
+    -fx-padding: 0 8 0 8;
+}
+
+.status-bar {
+    -fx-background-color: linear-gradient(to top, #1d2c3a, #152238);
+    -fx-border-color: #2a3f55 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 10 24 10 24;
+}
+
+.status-bar .label {
+    -fx-text-fill: #85929e;
+    -fx-font-size: 12px;
+}
+
+.turn-indicator {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f39c12;
+}
+
+.fleet-panel {
+    -fx-background-color: rgba(15, 29, 46, 0.7);
+    -fx-background-radius: 8;
+    -fx-border-color: #1e3a5f;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-padding: 12 16 12 16;
+}
+
+.fleet-panel .label {
+    -fx-text-fill: #85929e;
+    -fx-font-size: 12px;
+}
+
+.fleet-panel .ship-name {
+    -fx-text-fill: #aeb6bf;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.fleet-panel .ship-count {
+    -fx-text-fill: #5d7b96;
+    -fx-font-size: 11px;
+}
+
+.victory-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.7);
+    -fx-alignment: CENTER;
+}
+
+.victory-label {
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f1c40f;
+    -fx-effect: dropshadow(gaussian, rgba(241,196,15,0.5), 12, 0, 0, 0);
+}
+
+.victory-sublabel {
+    -fx-font-size: 16px;
+    -fx-text-fill: #ecf0f1;
+    -fx-padding: 12 0 0 0;
 }

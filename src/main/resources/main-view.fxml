@@ -3,13 +3,18 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.geometry.Rectangle2D?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="600.0" prefWidth="1000.0" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.batallanaval_fpoe.controller.PrincipalController">   <children>
+<VBox prefHeight="580.0" prefWidth="1200.0" styleClass="game-container" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.batallanaval_fpoe.controller.PrincipalController">
+
+   <children>
+      <!-- ════════════════════ NAV BAR ════════════════════ -->
       <HBox alignment="CENTER" prefHeight="57.0" styleClass="nav-bar">
          <children>
             <HBox alignment="CENTER_LEFT">
@@ -28,15 +33,67 @@
                </children>
             </HBox>
             <Region prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
-            <HBox alignment="CENTER_RIGHT">
+            <HBox alignment="CENTER_RIGHT" spacing="12">
                <children>
-                  <Button mnemonicParsing="false" onAction="#showMachine" text="Ver Maquina">
+                  <Button fx:id="btnNewGame" mnemonicParsing="false" styleClass="btn-primary" text="Nueva Partida" />
+                  <Button fx:id="btnShowMachine" mnemonicParsing="false" onAction="#showMachine" styleClass="btn-primary" text="Ver Máquina">
                      <HBox.margin>
                         <Insets right="24.0" />
                      </HBox.margin>
                   </Button>
                </children>
             </HBox>
+         </children>
+      </HBox>
+
+      <!-- ════════════════════ GAME AREA ════════════════════ -->
+      <HBox alignment="CENTER" spacing="0" VBox.vgrow="ALWAYS">
+
+         <!-- ────── LEFT BOARD: Player ────── -->
+         <VBox alignment="CENTER" styleClass="board-section" HBox.hgrow="ALWAYS">
+            <children>
+               <Label fx:id="lblPlayerTitle" styleClass="board-title" text="Tu Tablero" />
+               <StackPane alignment="CENTER" styleClass="board-panel" VBox.vgrow="ALWAYS">
+                   <VBox fx:id="playerBoardContainer" alignment="CENTER" styleClass="isometric-grid" />
+               </StackPane>
+               <HBox fx:id="playerFleetInfo" alignment="CENTER_LEFT" spacing="16" styleClass="fleet-panel">
+                  <padding>
+                     <Insets top="8.0" />
+                  </padding>
+               </HBox>
+            </children>
+            <HBox.margin>
+               <Insets left="16.0" />
+            </HBox.margin>
+         </VBox>
+
+         <!-- ────── Separator ────── -->
+         <Region prefWidth="16.0" styleClass="board-separator" />
+
+         <!-- ────── RIGHT BOARD: Machine ────── -->
+         <VBox alignment="CENTER" styleClass="board-section" HBox.hgrow="ALWAYS">
+            <children>
+               <Label fx:id="lblMachineTitle" styleClass="board-title" text="Tablero Enemigo" />
+               <StackPane alignment="CENTER" styleClass="board-panel" VBox.vgrow="ALWAYS">
+                   <VBox fx:id="machineBoardContainer" alignment="CENTER" styleClass="isometric-grid" />
+               </StackPane>
+               <HBox fx:id="machineFleetInfo" alignment="CENTER_LEFT" spacing="16" styleClass="fleet-panel">
+                  <padding>
+                     <Insets top="8.0" />
+                  </padding>
+               </HBox>
+            </children>
+            <HBox.margin>
+               <Insets right="16.0" />
+            </HBox.margin>
+         </VBox>
+      </HBox>
+
+      <!-- ════════════════════ STATUS BAR ════════════════════ -->
+      <HBox alignment="CENTER" spacing="16" styleClass="status-bar">
+         <children>
+            <Label fx:id="lblTurn" styleClass="turn-indicator" text="Tu turno" />
+            <Label fx:id="lblStatus" text="" />
          </children>
       </HBox>
    </children>
