@@ -7,4 +7,9 @@ package org.example.batallanaval_fpoe.controller;
  * @author Daniel, Nicolás, Robert
  */
 public class PrincipalController {
+
+    @FXML
+    private void showMachine() {
+        // acá va la lógica para mostrar el tablero del oponente
+    }
 }
