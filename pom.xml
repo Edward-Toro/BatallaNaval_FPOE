@@ -60,7 +60,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>org.example.batallanaval_fpoe/org.example.batallanaval_fpoe.HelloApplication
+                            <mainClass>org.example.batallanaval_fpoe/org.example.batallanaval_fpoe.NavalBattleApp
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>

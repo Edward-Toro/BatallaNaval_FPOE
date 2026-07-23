@@ -9,8 +9,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="600.0" prefWidth="1000.0" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
-   <children>
+<VBox prefHeight="600.0" prefWidth="1000.0" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.batallanaval_fpoe.controller.PrincipalController">   <children>
       <HBox alignment="CENTER" prefHeight="57.0" styleClass="nav-bar">
          <children>
             <HBox alignment="CENTER_LEFT">
