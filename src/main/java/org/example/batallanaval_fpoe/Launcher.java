@@ -1,5 +1,7 @@
 package org.example.batallanaval_fpoe;
 
+import javafx.application.Application;
+
 /**
  * Clase de arranque auxiliar. Se usa como main class en el jar/ejecutable
  * para evitar los problemas de classpath que JavaFX presenta al lanzar
@@ -9,6 +11,6 @@ package org.example.batallanaval_fpoe;
  */
 public class Launcher {
     public static void main(String[] args) {
-        HelloApplication.main(args);
+        Application.launch(NavalBattleApp.class, args);
     }
 }

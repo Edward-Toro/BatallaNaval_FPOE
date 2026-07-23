@@ -1,9 +1,11 @@
 package org.example.batallanaval_fpoe;
 
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
-import javafx.scene.layout.StackPane;
+
+import java.io.IOException;
 
 /**
  * Punto de entrada de la aplicación JavaFX. Por ahora solo abre una
@@ -12,17 +14,17 @@ import javafx.scene.layout.StackPane;
  *
  * @author Daniel, Nicolás, Robert
  */
-public class HelloApplication extends Application {
+public class NavalBattleApp extends Application {
 
     @Override
-    public void start(Stage stage) {
-        Scene scene = new Scene(new StackPane(), 800, 600);
+    public void start(Stage stage) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(
+            NavalBattleApp.class.getResource("/main-view.fxml"));
+        Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Batalla Naval - FPOE");
         stage.setScene(scene);
+        stage.setMaximized(true);
         stage.show();
     }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
 }
