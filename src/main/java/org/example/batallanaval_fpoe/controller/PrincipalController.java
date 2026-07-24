@@ -429,18 +429,13 @@ public class PrincipalController {
                 break;
 
             case OCUPADA:
-
                 if (showShips) {
-
+                    // En tablero enemigo NO mostramos barcos
+                    cell.getStyleClass().add("cell-vacia");
+                } else {
                     cell.getStyleClass().add("cell-ocupada");
                     cell.getChildren().add(createIcon("■", "#2980b9"));
-
-                } else {
-
-                    cell.getStyleClass().add("cell-vacia");
-
                 }
-
                 break;
 
             case AGUA:
@@ -488,11 +483,7 @@ public class PrincipalController {
 
             switch (resultado) {
                 case AGUA:
-
-                    updateStatus("Agua... turno de la máquina.");
-
-                    turnoMaquina();
-
+                    updateStatus("Agua... nada por ahí.");
                     break;
                 case TOCADO:
                     updateStatus("¡Tocado! Impacto en el barco enemigo.");
@@ -503,65 +494,11 @@ public class PrincipalController {
                 case VICTORIA:
                     updateStatus("¡VICTORIA! Has hundido toda la flota enemiga.");
                     lblTurn.setText("¡GANASTE!");
-                    disableBoard(machineCells);
                     break;
             }
         } catch (Exception e) {
             updateStatus("Casilla ya disparada — elige otra.");
         }
-    }
-
-    private void turnoMaquina() {
-
-        java.util.Random random = new java.util.Random();
-
-        while (true) {
-
-            int fila = random.nextInt(Tablero.TAMANO);
-            int columna = random.nextInt(Tablero.TAMANO);
-
-            Casilla casilla = playerBoard.getCasillas()[fila][columna];
-
-            if (casilla.getEstado() == EstadoCasilla.VACIA ||
-                    casilla.getEstado() == EstadoCasilla.OCUPADA) {
-
-                try {
-
-                    var resultado = playerBoard.disparar(fila, columna);
-
-                    if (playerIsoTiles[fila][columna] != null) {
-                        applyIsoColor(playerIsoTiles[fila][columna], casilla, true);
-                    }
-
-                    switch (resultado) {
-
-                        case AGUA:
-                            updateStatus("La máquina disparó al agua.");
-                            return;
-
-                        case TOCADO:
-                            updateStatus("¡La máquina tocó uno de tus barcos!");
-                            break;
-
-                        case HUNDIDO:
-                            updateStatus("¡La máquina hundió uno de tus barcos!");
-                            break;
-
-                        case VICTORIA:
-                            updateStatus("La máquina ganó la partida.");
-                            lblTurn.setText("DERROTA");
-                            disableBoard(machineCells);
-                            return;
-
-                    }
-
-                } catch (Exception e) {
-                }
-
-            }
-
-        }
-
     }
 
     // ══════════════════════════════════════════════════════
