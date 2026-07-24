@@ -7,7 +7,7 @@ import java.util.List;
  * Conjunto completo de barcos de un jugador (1 portaaviones,
  * 2 submarinos, 3 destructores, 4 fragatas).
  *
- * @author Daniel
+ * @author Daniel, Nicolás
  */
 public class Flota {
 
