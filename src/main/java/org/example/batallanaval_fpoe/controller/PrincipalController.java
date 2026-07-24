@@ -72,10 +72,14 @@ public class PrincipalController {
     // ── Model ────────────────────────────────────────────
     /** Fachada principal del modelo de dominio que coordina las reglas de juego. */
     private BatallaNavalFacade facade;
+    /** Indica si el jugador ya realizó su primer disparo; a partir de ahí se bloquea "Ver Máquina". */
+    private boolean primerDisparoRealizado = false;
     /** Referencia al tablero del jugador. */
     private Tablero playerBoard;
     /** Referencia al tablero de la máquina (enemigo). */
     private Tablero machineBoard;
+    /** Termina partida*/
+    private boolean partidaTerminada = false;
 
     // ── Visual grid references ───────────────────────────
     /** Matriz 10×10 de nodos JavaFX para el tablero 2D plano del jugador. */
@@ -198,14 +202,32 @@ public class PrincipalController {
      */
     private void revealMachineBoard(boolean reveal) {
         if (isoTilesPane == null || machineBoard == null) return;
+
+        // Reconstruye el tablero enemigo siempre oculto (comportamiento normal)
         buildGenericIsometricBoard(
-            isoTilesPane,
-            machineBoard,
-            isoTiles,
-            originX,
-            originY,
-            reveal
+                isoTilesPane,
+                machineBoard,
+                isoTiles,
+                originX,
+                originY,
+                false
         );
+
+        // Si se está revelando, resalta en amarillo solo las casillas con barco
+        if (reveal) {
+            int contador = 0;
+            for (int f = 0; f < Tablero.TAMANO; f++) {
+                for (int c = 0; c < Tablero.TAMANO; c++) {
+                    Casilla casilla = machineBoard.getCasillas()[f][c];
+                    if (casilla.tieneBarco() && isoTiles[f][c] != null) {
+                        isoTiles[f][c].setFill(Color.web("#f1c40f"));
+                        contador++;
+                    }
+                }
+            }
+            System.out.println("[DEBUG] Casillas pintadas de amarillo: " + contador);
+
+        }
     }
 
     /**
@@ -252,6 +274,9 @@ public class PrincipalController {
      * tamaño real del StackPane contenedor. Mantiene la proporción 2:1
      * del grid isométrico y centra la imagen (contain behavior).
      */
+
+    private double lastVw = -1;
+    private double lastVh = -1;
     private void recalculateGrid() {
         if (boardStack == null || playerBoardStack == null) return;
 
@@ -260,6 +285,9 @@ public class PrincipalController {
         double vw = boardStack.getWidth() - pad.getLeft() - pad.getRight();
         double vh = boardStack.getHeight() - pad.getTop() - pad.getBottom();
         if (vw <= 0 || vh <= 0) return;
+        if (Math.abs(vw - lastVw) < 2 && Math.abs(vh - lastVh) < 2) return;
+        lastVw = vw;
+        lastVh = vh;
 
         int N = Tablero.TAMANO;
 
@@ -799,6 +827,8 @@ public class PrincipalController {
      * y cede el turno automáticamente a la máquina en caso de fallo (AGUA).
      */
     private void handleShot(int fila, int columna) {
+        if (partidaTerminada) return;
+
         if (facade != null && !facade.esTurnoJugador()) {
             updateStatus("Es el turno de la máquina... espera.");
             return;
@@ -808,6 +838,13 @@ public class PrincipalController {
             EstadoDisparo resultado = (facade != null)
                 ? facade.disparaJugador(fila, columna)
                 : machineBoard.disparar(fila, columna);
+
+            if (!primerDisparoRealizado) {
+                primerDisparoRealizado = true;
+                if (btnShowMachine != null) {
+                    btnShowMachine.setDisable(true);
+                }
+            }
 
             Casilla casilla = machineBoard.getCasillas()[fila][columna];
 
@@ -832,6 +869,7 @@ public class PrincipalController {
                 case VICTORIA:
                     updateStatus("¡VICTORIA! Has hundido toda la flota enemiga.");
                     if (lblTurn != null) lblTurn.setText("¡GANASTE!");
+                    mostrarFinDePartida(true);
                     break;
             }
         } catch (Exception e) {
@@ -872,10 +910,31 @@ public class PrincipalController {
         } else if (resultado == EstadoDisparo.VICTORIA) {
             updateStatus("DERROTA... La máquina ha hundido toda tu flota.");
             if (lblTurn != null) lblTurn.setText("¡GAME OVER!");
+            mostrarFinDePartida(false);
         } else {
             updateStatus("¡La máquina impactó tu barco en (" + COLS[c] + (f + 1) + ")! Vuelve a disparar...");
             javafx.application.Platform.runLater(this::ejecutarTurnoMaquina);
         }
+    }
+    /**
+     * Muestra un diálogo de fin de partida y bloquea el tablero.
+     * @param gano true si el jugador ganó, false si perdió.
+     */
+    private void mostrarFinDePartida(boolean gano) {
+        partidaTerminada = true;
+        if (boardStack != null) {
+            boardStack.setOnMouseClicked(null);
+            boardStack.setOnMouseMoved(null);
+        }
+
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.INFORMATION);
+        alert.setTitle("Fin de la partida");
+        alert.setHeaderText(gano ? "¡Ganaste!" : "Perdiste");
+        alert.setContentText(gano
+                ? "Hundiste toda la flota enemiga. ¡Buen trabajo, almirante!"
+                : "La máquina hundió toda tu flota. ¡Suerte para la próxima!");
+        alert.showAndWait();
     }
 
     // ══════════════════════════════════════════════════════
