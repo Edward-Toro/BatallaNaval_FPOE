@@ -20,7 +20,7 @@
          <children>
             <HBox alignment="CENTER_LEFT">
                <children>
-                  <ImageView fitHeight="77.0" fitWidth="338.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fitHeight="60.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@Asset%20-8.png" />
                      </image>
@@ -28,7 +28,7 @@
                         <Rectangle2D />
                      </viewport>
                      <HBox.margin>
-                        <Insets left="24.0" />
+                        <Insets top="10.0" bottom="10.0" left="24.0" right="16.0" />
                      </HBox.margin>
                   </ImageView>
                </children>

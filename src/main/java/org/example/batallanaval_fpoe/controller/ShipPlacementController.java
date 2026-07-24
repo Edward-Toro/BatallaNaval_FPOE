@@ -45,18 +45,35 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Controlador de la pantalla de configuracion (colocacion manual de barcos).
- * Permite drag & drop sobre un tablero isometrico, rotacion con R,
- * auto-ubicacion y limpieza total.
+ * Controlador de la Vista de Configuración (Colocación de Flota) — Batalla Naval FPOE.
+ * <p>
+ * Gestiona la fase de alistamiento de la flota del jugador antes del combate.
+ * Soporta posicionamiento manual interactivo mediante Drag &amp; Drop y clicks,
+ * rotación dinámica de orientación (Horizontal / Vertical), auto-ubicación aleatoria
+ * delegada al modelo y validación en tiempo real de restricciones de espacio.
+ * </p>
+ * <p>
+ * <b>Patrones y Principios POE Implementados:</b>
+ * <ul>
+ *   <li><b>Drag and Drop JavaFX:</b> Inicia eventos de arrastre desde la paleta de barcos ({@code Dragboard})
+ *   hacia la cuadrícula isométrica 2.5D con pre-visualización táctica de validez.</li>
+ *   <li><b>Integridad del Modelo:</b> Llama exclusivamente a métodos del modelo {@link Tablero#colocarBarco}
+ *   y captura excepciones de dominio como {@link PosicionInvalidaException}.</li>
+ *   <li><b>Renderizado Isométrico Dinámico:</b> Mantiene el plano 2.5D ajustado al contenedor con
+ *   grilla extendida de fondo y cálculo responsivo al redimensionar la ventana.</li>
+ * </ul>
+ * </p>
  *
- * NO toca la logica del modelo — solo usa las APIs existentes
- * ({@link Tablero#colocarBarco}, {@link BatallaNavalFacade}).
- *
- * @author Daniel, Nicolas, Robert
+ * @author Daniel, Nicolás, Robert
+ * @version 2.0
+ * @see BatallaNavalFacade
+ * @see Tablero
+ * @see Barco
+ * @see Orientacion
  */
 public class ShipPlacementController {
 
-    // ── FXML injections ──────────────────────────────────
+    // ── Inyecciones FXML ──────────────────────────────────
     @FXML private StackPane boardStack;
     @FXML private VBox shipPalette;
     @FXML private Label lblOrientation;
@@ -66,14 +83,14 @@ public class ShipPlacementController {
     @FXML private Button btnClear;
     @FXML private Label lblStatus;
 
-    // ── Model ────────────────────────────────────────────
+    // ── Modelo de Dominio ──────────────────────────────────
     private BatallaNavalFacade facade;
     private Tablero playerBoard;
     private Orientacion currentOrientation = Orientacion.HORIZONTAL;
     private int shipsPlaced = 0;
     private static final int TOTAL_SHIPS = 10;
 
-    // ── Isometric grid ───────────────────────────────────
+    // ── Grilla e Información Isométrica ───────────────────
     private double tileWidth  = 48.0;
     private double tileHeight = 24.0;
     private double originX    = 300.0;
@@ -83,26 +100,26 @@ public class ShipPlacementController {
     private final Polygon[][] isoTiles = new Polygon[Tablero.TAMANO][Tablero.TAMANO];
     private Polygon highlight;
 
-    // ── Preview tiles (max ship size = 4) ────────────────
+    // ── Losas de Pre-visualización (tamaño máximo = 4) ─────
     private static final int MAX_SHIP_SIZE = 4;
     private final Polygon[] previewTiles = new Polygon[MAX_SHIP_SIZE];
 
-    // ── Ship images overlay ──────────────────────────────
+    // ── Capa de Imágenes y Sprites de Barcos ──────────────
     private Pane shipImagesPane;
     private final Map<Barco, ImageView> shipImageMap = new java.util.HashMap<>();
     private final Map<TipoBarco, Image> imageCache = new EnumMap<>(TipoBarco.class);
 
-    // ── Drag & Drop ──────────────────────────────────────
+    // ── Arrastre y Soltado (Drag & Drop) ──────────────────
     private static final DataFormat SHIP_DATA =
             new DataFormat("application/x-batallanaval-ship");
     private TipoBarco draggingType;
     private Barco draggingShip;
 
-    // ── Palette card references ──────────────────────────
+    // ── Tarjetas de la Paleta Lateral ──────────────────────
     private final Map<TipoBarco, VBox> paletteCards = new EnumMap<>(TipoBarco.class);
 
     // ══════════════════════════════════════════════════════
-    //  INITIALIZATION
+    //  INICIALIZACIÓN
     // ══════════════════════════════════════════════════════
 
     @FXML
@@ -123,7 +140,7 @@ public class ShipPlacementController {
     }
 
     // ══════════════════════════════════════════════════════
-    //  ISOMETRIC GRID
+    //  CONSTRUCCIÓN DE LA GRILLA ISOMÉTRICA
     // ══════════════════════════════════════════════════════
 
     /**
@@ -142,6 +159,9 @@ public class ShipPlacementController {
         double hw = tileWidth  / 2.0;
         double hh = tileHeight / 2.0;
 
+        // Dibujar grilla extendida en el fondo de la pantalla de colocación
+        drawExtendedIsometricGrid();
+
         for (int sum = 0; sum <= 2 * (N - 1); sum++) {
             for (int row = Math.max(0, sum - N + 1); row <= Math.min(sum, N - 1); row++) {
                 int col = sum - row;
@@ -157,12 +177,84 @@ public class ShipPlacementController {
                 Casilla casilla = playerBoard.getCasillas()[row][col];
                 applyIsoColor(tile, casilla);
 
-                tile.setStroke(Color.web("#1e3a5f"));
-                tile.setStrokeWidth(0.8);
+                tile.setStroke(Color.web("#2392b8"));
+                tile.setStrokeWidth(1.0);
 
                 isoTiles[row][col] = tile;
                 isoTilesPane.getChildren().add(tile);
             }
+        }
+        drawIsometricHeaders();
+    }
+
+    /**
+     * Dibuja líneas de grilla isométricas extendidas alrededor del tablero del jugador.
+     * Proyecta la rejilla 5 casillas más allá de las aristas y aplica una degradación de
+     * opacidad por distancia (efecto plano oceánico difuminado).
+     */
+    private void drawExtendedIsometricGrid() {
+        int N = Tablero.TAMANO;
+        int margin = 1;
+
+        double hw = tileWidth / 2.0;
+        double hh = tileHeight / 2.0;
+        Point2D boardCenter = gridToScreen(4, 4);
+        double maxDist = Math.hypot(hw * (N + margin), hh * (N + margin));
+
+        for (int row = -margin; row < N + margin; row++) {
+            for (int col = -margin; col < N + margin; col++) {
+                if (row >= 0 && row < N && col >= 0 && col < N) continue;
+
+                Point2D center = gridToScreen(row, col);
+                double dist = center.distance(boardCenter);
+                
+                double opacity = 0.22 * Math.max(0.0, 1.0 - (dist / maxDist));
+                if (opacity <= 0.02) continue;
+
+                Polygon extTile = new Polygon(
+                    center.getX(),      center.getY() - hh,
+                    center.getX() + hw, center.getY(),
+                    center.getX(),      center.getY() + hh,
+                    center.getX() - hw, center.getY()
+                );
+                extTile.setFill(Color.TRANSPARENT);
+                extTile.setStroke(Color.rgb(35, 146, 184, opacity));
+                extTile.setStrokeWidth(0.8);
+                extTile.setMouseTransparent(true);
+
+                isoTilesPane.getChildren().add(extTile);
+            }
+        }
+    }
+
+    private static final String[] COLS = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
+
+    /**
+     * Dibuja las etiquetas numéricas de fila (1-10) y alfabéticas de columna (A-J)
+     * a lo largo de las aristas superiores de la proyección isométrica.
+     */
+    private void drawIsometricHeaders() {
+        double hw = tileWidth / 2.0;
+        double hh = tileHeight / 2.0;
+
+        for (int col = 0; col < Tablero.TAMANO; col++) {
+            Point2D center = gridToScreen(0, col);
+            Label label = new Label(COLS[col]);
+            label.setStyle("-fx-text-fill: #7dd3fc; -fx-font-size: 11px; -fx-font-weight: bold;");
+            label.setMouseTransparent(true);
+            label.setLayoutX(center.getX() + hw / 2.0 - 4.0);
+            label.setLayoutY(center.getY() - hh - 16.0);
+            isoTilesPane.getChildren().add(label);
+        }
+
+        for (int row = 0; row < Tablero.TAMANO; row++) {
+            Point2D center = gridToScreen(row, 0);
+            Label label = new Label(String.valueOf(row + 1));
+            label.setStyle("-fx-text-fill: #7dd3fc; -fx-font-size: 11px; -fx-font-weight: bold;");
+            label.setMouseTransparent(true);
+            label.setLayoutX(center.getX() - hw / 2.0 - 8.0);
+            label.setLayoutY(center.getY() - hh - 16.0);
+            isoTilesPane.getChildren().add(label);
         }
     }
 
@@ -274,17 +366,17 @@ public class ShipPlacementController {
     private void applyIsoColor(Polygon tile, Casilla casilla) {
         String color;
         switch (casilla.getEstado()) {
-            case OCUPADA:  color = "#2980b9"; break;
-            case AGUA:     color = "#1a3a5c"; break;
-            case TOCADO:   color = "#7b241c"; break;
-            case HUNDIDO:  color = "#4a1a1a"; break;
-            default:       color = "#0e2a3d"; break;
+            case OCUPADA:  color = "#176b87"; break;
+            case AGUA:     color = "#0e4a64"; break;
+            case TOCADO:   color = "#c0392b"; break;
+            case HUNDIDO:  color = "#641e16"; break;
+            default:       color = "#0c4258"; break;
         }
         tile.setFill(Color.web(color));
     }
 
     // ══════════════════════════════════════════════════════
-    //  ISOMETRIC PROJECTION
+    //  PROYECCIÓN Y CONVERSIÓN ISOMÉTRICA
     // ══════════════════════════════════════════════════════
 
     public Point2D gridToScreen(int row, int col) {
@@ -310,7 +402,7 @@ public class ShipPlacementController {
     }
 
     // ══════════════════════════════════════════════════════
-    //  RESPONSIVE GRID
+    //  CÁLCULO RESPONSIVO DE GRILLA
     // ══════════════════════════════════════════════════════
 
     private void setupResponsiveGrid() {
@@ -352,7 +444,7 @@ public class ShipPlacementController {
     }
 
     // ══════════════════════════════════════════════════════
-    //  SHIP PALETTE
+    //  PALETA DE BARCOS Y TARJETAS
     // ══════════════════════════════════════════════════════
 
     /**
@@ -627,7 +719,7 @@ public class ShipPlacementController {
     }
 
     // ══════════════════════════════════════════════════════
-    //  SHIP OPERATIONS
+    //  OPERACIONES DE COLOCACIÓN DE BARCOS
     // ══════════════════════════════════════════════════════
 
     private boolean isValidPlacement(int startRow, int startCol, Orientacion orient, int size) {
@@ -681,7 +773,7 @@ public class ShipPlacementController {
     }
 
     // ══════════════════════════════════════════════════════
-    //  ACTIONS (FXML)
+    //  ACCIONES DE BOTONES E INTERFAZ (FXML)
     // ══════════════════════════════════════════════════════
 
     @FXML
@@ -736,7 +828,7 @@ public class ShipPlacementController {
     }
 
     // ══════════════════════════════════════════════════════
-    //  KEY BINDINGS
+    //  ACCESOS DIRECTOS DE TECLADO
     // ══════════════════════════════════════════════════════
 
     private void setupKeyBindings() {

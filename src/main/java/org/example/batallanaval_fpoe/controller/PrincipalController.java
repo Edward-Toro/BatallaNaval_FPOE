@@ -1,4 +1,17 @@
 package org.example.batallanaval_fpoe.controller;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
+import org.example.batallanaval_fpoe.NavalBattleApp;
+import org.example.batallanaval_fpoe.model.Barco;
+import org.example.batallanaval_fpoe.model.BatallaNavalFacade;
+import org.example.batallanaval_fpoe.model.Casilla;
+import org.example.batallanaval_fpoe.model.EstadoCasilla;
+import org.example.batallanaval_fpoe.model.EstadoDisparo;
+import org.example.batallanaval_fpoe.model.Tablero;
+import org.example.batallanaval_fpoe.model.TipoBarco;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -17,23 +30,30 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-
-import org.example.batallanaval_fpoe.NavalBattleApp;
-import org.example.batallanaval_fpoe.model.Barco;
-import org.example.batallanaval_fpoe.model.BatallaNavalFacade;
-import org.example.batallanaval_fpoe.model.Casilla;
-import org.example.batallanaval_fpoe.model.EstadoCasilla;
-import org.example.batallanaval_fpoe.model.Tablero;
-import org.example.batallanaval_fpoe.model.TipoBarco;
-
 /**
- * Controlador principal — genera los tableros 10×10 visualmente
- * sin tocar la lógica del modelo.
+ * Controlador de la Vista Principal (Pantalla de Juego) — Batalla Naval FPOE.
+ * <p>
+ * Esta clase administra la interfaz de usuario orientada a eventos (JavaFX) durante la fase activa
+ * del juego de Batalla Naval. Implementa un motor gráfico 2.5D en proyección isométrica responsivo
+ * que se adapta automáticamente a las dimensiones de la ventana.
+ * </p>
+ * <p>
+ * <b>Patrones de Diseño y Principios POE Aplicados:</b>
+ * <ul>
+ *   <li><b>Separación de Responsabilidades (SoC):</b> La vista y el controlador no manipulan la lógica
+ *   interna del juego; todas las consultas de estado y acciones de disparo se delegan a la fachada {@link BatallaNavalFacade}.</li>
+ *   <li><b>Programación Orientada a Eventos (POE):</b> Captura interacciones del usuario mediante listeners
+ *   en JavaFX (eventos {@code MouseEvent}, observadores de propiedades {@code ReadOnlyDoubleProperty}).</li>
+ *   <li><b>Renderizado Isométrico Responsivo:</b> Convierte matriz bidimensional de 10×10 en rombos isométricos
+ *   con orden de dibujado back-to-front (por suma de diagonal) para preservar el orden Z visual.</li>
+ * </ul>
+ * </p>
  *
  * @author Daniel, Nicolás, Robert
+ * @version 2.0
+ * @see BatallaNavalFacade
+ * @see Tablero
+ * @see Casilla
  */
 public class PrincipalController {
 
@@ -46,22 +66,33 @@ public class PrincipalController {
     @FXML private Label lblMachineTitle;
     @FXML private HBox playerFleetInfo;
     @FXML private HBox machineFleetInfo;
+    @FXML private Button btnShowMachine;
+    @FXML private Button btnNewGame;
 
     // ── Model ────────────────────────────────────────────
+    /** Fachada principal del modelo de dominio que coordina las reglas de juego. */
     private BatallaNavalFacade facade;
+    /** Referencia al tablero del jugador. */
     private Tablero playerBoard;
+    /** Referencia al tablero de la máquina (enemigo). */
     private Tablero machineBoard;
 
     // ── Visual grid references ───────────────────────────
+    /** Matriz 10×10 de nodos JavaFX para el tablero 2D plano del jugador. */
     private final StackPane[][] playerCells = new StackPane[Tablero.TAMANO][Tablero.TAMANO];
+    /** Matriz 10×10 de nodos JavaFX para el tablero 2D plano de la máquina. */
     private final StackPane[][] machineCells = new StackPane[Tablero.TAMANO][Tablero.TAMANO];
 
     // ── Column letters ───────────────────────────────────
+    /** Etiquetas alfabéticas para la identificación de columnas en los tableros (A - J). */
     private static final String[] COLS = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
 
     // ── Ship images overlay ──────────────────────────────
+    /** Pane transparente superpuesto para renderizar las imágenes vectoriales/sprites de los barcos. */
     private Pane shipImagesPane;
+    /** Mapeo entre objetos Barco del modelo y su nodo visual ImageView correspondiente. */
     private final Map<Barco, ImageView> shipImageMap = new java.util.HashMap<>();
+    /** Caché de imágenes de barcos por tipo para optimizar memoria y rendimiento. */
     private final Map<TipoBarco, Image> imageCache = new EnumMap<>(TipoBarco.class);
 
 
@@ -69,53 +100,57 @@ public class PrincipalController {
     //  ISOMETRIC PROJECTION CONSTANTS
     // ══════════════════════════════════════════════════════
 
-    /** Ancho de losa diamante en pantalla (eje X isométrico). */
+    /** Ancho de losa diamante en pantalla en píxeles (eje X isométrico). */
     private double tileWidth  = 48.0;
-    /** Alto de losa diamante en pantalla (eje Y isométrico). */
+    /** Alto de losa diamante en pantalla en píxeles (eje Y isométrico). */
     private double tileHeight = 24.0;
-    /** Origen X del tablero isométrico dentro del Pane. */
+    /** Coordenada X del origen del tablero enemigo dentro del Pane contenedor. */
     private double originX = 300.0;
-    /** Origen Y del tablero isométrico dentro del Pane. */
+    /** Coordenada Y del origen del tablero enemigo dentro del Pane contenedor. */
     private double originY = 40.0;
 
-    /** Rectángulo semi-transparente que resalta la casilla bajo el cursor. */
+    /** Polígono semi-transparente de resaltado táctico para la casilla bajo el cursor. */
     private Polygon highlight;
-    /** Pane overlay para el debug grid. */
+    /** Pane overlay para la rejilla de depuración geométrica. */
     private Pane debugOverlay;
-    /** StackPane padre que contiene al VBox (para el overlay). */
+    /** Contenedor StackPane padre que aloja la vista isométrica del enemigo. */
     private StackPane boardStack;
-    /** Pane que contiene los diamantes isométricos del tablero enemigo. */
+    /** Pane que aloja la colección de diamantes isométricos del tablero enemigo. */
     private Pane isoTilesPane;
-    /** Referencia a cada diamante isométrico para actualizar su color. */
+    /** Matriz 10×10 de Polígonos isométricos del tablero de la máquina. */
     private final Polygon[][] isoTiles = new Polygon[Tablero.TAMANO][Tablero.TAMANO];
 
-    /** StackPane del tablero del jugador (su padre en el FXML). */
+    /** Contenedor StackPane padre que aloja la vista isométrica del jugador. */
     private StackPane playerBoardStack;
-    /** Pane que contiene los diamantes isométricos del tablero del jugador. */
+    /** Pane que aloja la colección de diamantes isométricos del tablero del jugador. */
     private Pane playerIsoTilesPane;
-    /** Referencia a cada diamante isométrico del jugador para actualizar su color. */
+    /** Matriz 10×10 de Polígonos isométricos del tablero del jugador. */
     private final Polygon[][] playerIsoTiles = new Polygon[Tablero.TAMANO][Tablero.TAMANO];
-    /** Origen X del tablero isométrico del jugador dentro del Pane. */
+    /** Coordenada X del origen del tablero del jugador dentro de su Pane. */
     private double playerOriginX = 300.0;
-    /** Origen Y del tablero isométrico del jugador dentro del Pane. */
+    /** Coordenada Y del origen del tablero del jugador dentro de su Pane. */
     private double playerOriginY = 40.0;
 
     // ══════════════════════════════════════════════════════
     //  INITIALIZATION
     // ══════════════════════════════════════════════════════
 
+    /**
+     * Inicializa los componentes estáticos de la interfaz tras la carga del FXML.
+     * Construye las barras de estado y paneles informativos iniciales de ambas flotas.
+     */
     @FXML
     public void initialize() {
-        // Solo UI estática — los tableros se configuran via setFacade()
         buildFleetInfo(playerFleetInfo, "Jugador");
         buildFleetInfo(machineFleetInfo, "Enemigo");
         updateStatus("Preparando tableros...");
     }
 
     /**
-     * Inyecta el facade pre-configurado (con la flota del jugador ya colocada)
-     * y construye ambos tableros isometricos.
-     * Llamado por {@link NavalBattleApp#showGameScreen} despues de load().
+     * Inyecta la fachada del modelo pre-configurada (con la flota colocada) y construye
+     * los tableros isométricos e interactivos.
+     *
+     * @param facade Instancia de {@link BatallaNavalFacade} que actúa como punto de acceso al modelo.
      */
     public void setFacade(BatallaNavalFacade facade) {
         this.facade = facade;
@@ -132,11 +167,54 @@ public class PrincipalController {
 
         setupResponsiveGrid();
         setupIsometricInteraction(boardStack);
+        setupShowMachineHoldListener();
 
         // Pintar los barcos del jugador sobre su tablero
         renderShipImages();
 
         updateStatus("Tu turno — selecciona una casilla del tablero enemigo");
+    }
+
+    /**
+     * Configura los eventos de presionar y soltar sobre el botón "Ver Máquina".
+     * Muestra temporalmente la ubicación de los barcos enemigos mientras se mantenga presionado el botón.
+     */
+    private void setupShowMachineHoldListener() {
+        if (btnShowMachine == null) return;
+
+        btnShowMachine.setOnMousePressed(e -> {
+            revealMachineBoard(true);
+            updateStatus("Inspeccionando posición de la flota enemiga...");
+        });
+
+        btnShowMachine.setOnMouseReleased(e -> {
+            revealMachineBoard(false);
+            updateStatus("Tu turno — selecciona una casilla del tablero enemigo");
+        });
+    }
+
+    /**
+     * Revela u oculta temporalmente la ubicación de la flota enemiga en la grilla isométrica.
+     */
+    private void revealMachineBoard(boolean reveal) {
+        if (isoTilesPane == null || machineBoard == null) return;
+        buildGenericIsometricBoard(
+            isoTilesPane,
+            machineBoard,
+            isoTiles,
+            originX,
+            originY,
+            reveal
+        );
+    }
+
+    /**
+     * Maneja la acción del botón "Nueva Partida", reiniciando el flujo del juego
+     * y regresando a la pantalla de alistamiento y colocación de la flota.
+     */
+    @FXML
+    private void onNewGame(ActionEvent event) {
+        NavalBattleApp.restartGame();
     }    
 
     // ══════════════════════════════════════════════════════
@@ -294,6 +372,9 @@ public class PrincipalController {
         if (targetPane == null || tablero == null) return;
         targetPane.getChildren().clear();
 
+        // 1. Dibujar grilla extendida difuminada en el fondo (100% alineada con el tablero)
+        drawExtendedIsometricGrid(targetPane, ox, oy);
+
         int N = Tablero.TAMANO;
         double hw = tileWidth / 2.0;
         double hh = tileHeight / 2.0;
@@ -313,17 +394,91 @@ public class PrincipalController {
                 Casilla casilla = tablero.getCasillas()[row][col];
                 applyIsoColor(tile, casilla, showShips);
 
-                tile.setStroke(Color.web("#1e3a5f"));
-                tile.setStrokeWidth(0.8);
+                tile.setStroke(Color.web("#2392b8"));
+                tile.setStrokeWidth(1.0);
 
                 tileArray[row][col] = tile;
                 targetPane.getChildren().add(tile);
+
+                // 2. Superponer imagen táctica según el estado de la casilla (Fuego, Bomba, Boom, Agua)
+                applyIsoOverlay(targetPane, casilla, center, showShips);
             }
         }
-}
+
+        drawIsometricHeaders(targetPane, ox, oy);
+    }
+
+    /**
+     * Dibuja los encabezados isométricos de filas (1-10) y columnas (A-J).
+     */
+    private void drawIsometricHeaders(Pane targetPane, double ox, double oy) {
+        double hw = tileWidth / 2.0;
+        double hh = tileHeight / 2.0;
+
+        // Encabezados de Columna (A - J)
+        for (int col = 0; col < Tablero.TAMANO; col++) {
+            Point2D center = gridToScreen(0, col, ox, oy);
+            Label label = new Label(COLS[col]);
+            label.setStyle("-fx-text-fill: #7dd3fc; -fx-font-size: 11px; -fx-font-weight: bold;");
+            label.setMouseTransparent(true);
+            label.setLayoutX(center.getX() + hw / 2.0 - 4.0);
+            label.setLayoutY(center.getY() - hh - 16.0);
+            targetPane.getChildren().add(label);
+        }
+
+        // Encabezados de Fila (1 - 10)
+        for (int row = 0; row < Tablero.TAMANO; row++) {
+            Point2D center = gridToScreen(row, 0, ox, oy);
+            Label label = new Label(String.valueOf(row + 1));
+            label.setStyle("-fx-text-fill: #7dd3fc; -fx-font-size: 11px; -fx-font-weight: bold;");
+            label.setMouseTransparent(true);
+            label.setLayoutX(center.getX() - hw / 2.0 - 8.0);
+            label.setLayoutY(center.getY() - hh - 16.0);
+            targetPane.getChildren().add(label);
+        }
+    }
+
+    /**
+     * Dibuja líneas de grilla isométricas extendidas suavemente (1 casilla de margen)
+     * para enmarcar el tablero sin colisionar con el tablero adyacente al redimensionar.
+     */
+    private void drawExtendedIsometricGrid(Pane targetPane, double ox, double oy) {
+        int N = Tablero.TAMANO;
+        int margin = 1;
+
+        double hw = tileWidth / 2.0;
+        double hh = tileHeight / 2.0;
+        Point2D boardCenter = gridToScreen(4, 4, ox, oy);
+        double maxDist = Math.hypot(hw * (N + margin), hh * (N + margin));
+
+        for (int row = -margin; row < N + margin; row++) {
+            for (int col = -margin; col < N + margin; col++) {
+                if (row >= 0 && row < N && col >= 0 && col < N) continue;
+
+                Point2D center = gridToScreen(row, col, ox, oy);
+                double dist = center.distance(boardCenter);
+                
+                double opacity = 0.22 * Math.max(0.0, 1.0 - (dist / maxDist));
+                if (opacity <= 0.02) continue;
+
+                Polygon extTile = new Polygon(
+                    center.getX(),      center.getY() - hh,
+                    center.getX() + hw, center.getY(),
+                    center.getX(),      center.getY() + hh,
+                    center.getX() - hw, center.getY()
+                );
+                extTile.setFill(Color.TRANSPARENT);
+                extTile.setStroke(Color.rgb(35, 146, 184, opacity));
+                extTile.setStrokeWidth(0.8);
+                extTile.setMouseTransparent(true);
+
+                targetPane.getChildren().add(extTile);
+            }
+        }
+    }
 
     // ══════════════════════════════════════════════════════
-    //  ISOMETRIC BOARD BUILDER
+    //  CONSTRUCCIÓN DEL TABLERO ISOMÉTRICO ENEMIGO
     // ══════════════════════════════════════════════════════
 
     /**
@@ -427,12 +582,12 @@ public class PrincipalController {
         String color;
         switch (casilla.getEstado()) {
             case OCUPADA:
-                color = showShips ? "#2980b9" : "#0e2a3d";
+                color = showShips ? "#176b87" : "#0c4258";
                 break;
-            case AGUA:     color = "#1a3a5c"; break;
-            case TOCADO:   color = "#7b241c"; break;
-            case HUNDIDO:  color = "#4a1a1a"; break;
-            default:       color = "#0e2a3d"; break;
+            case AGUA:     color = "#0e4a64"; break;
+            case TOCADO:   color = "#c0392b"; break;
+            case HUNDIDO:  color = "#641e16"; break;
+            default:       color = "#0c4258"; break;
         }
         tile.setFill(Color.web(color));
     }
@@ -442,21 +597,87 @@ public class PrincipalController {
         applyIsoColor(tile, casilla, false);
     }
 
+    /** Caché de imágenes de estado de combate (Fuego, Bomba, Boom, Agua). */
+    private final Map<String, Image> attackImageCache = new java.util.HashMap<>();
+
+    private Image getAttackImage(String resourcePath) {
+        return attackImageCache.computeIfAbsent(resourcePath, path -> {
+            try {
+                var is = getClass().getResourceAsStream(path);
+                return is != null ? new Image(is) : null;
+            } catch (Exception e) {
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Superpone la imagen táctica correspondiente según el estado de la casilla y el tablero:
+     * <ul>
+     *   <li><b>Tablero del Jugador:</b> Fuego.png (TOCADO), Boom.png (HUNDIDO), Agua.png (AGUA).</li>
+     *   <li><b>Tablero Enemigo:</b> Bomba.png (TOCADO), Boom.png (HUNDIDO), Agua.png (AGUA).</li>
+     * </ul>
+     */
+    private void applyIsoOverlay(Pane targetPane, Casilla casilla, Point2D center, boolean isPlayerBoard) {
+        EstadoCasilla estado = casilla.getEstado();
+        Image img = null;
+        double scaleFactor = 0.85;
+
+        switch (estado) {
+            case AGUA:
+                img = getAttackImage("/Agua.png");
+                scaleFactor = 1.0;
+                break;
+
+            case TOCADO:
+                img = isPlayerBoard ? getAttackImage("/Fuego.png") : getAttackImage("/Bomba.png");
+                scaleFactor = isPlayerBoard ? 0.85 : 0.75;
+                break;
+
+            case HUNDIDO:
+                img = getAttackImage("/Boom.png");
+                scaleFactor = 0.95;
+                break;
+
+            default:
+                return;
+        }
+
+        if (img != null) {
+            ImageView iv = new ImageView(img);
+            double w = tileWidth * scaleFactor;
+            iv.setFitWidth(w);
+            iv.setPreserveRatio(true);
+            iv.setMouseTransparent(true);
+
+            double h = w * (img.getHeight() / img.getWidth());
+            iv.setLayoutX(center.getX() - w / 2.0);
+            iv.setLayoutY(center.getY() - h / 2.0);
+
+            targetPane.getChildren().add(iv);
+        }
+    }
+
     // ══════════════════════════════════════════════════════
-    //  PLAYER ISOMETRIC BOARD BUILDER
+    //  CONSTRUCCIÓN DEL TABLERO ISOMÉTRICO DEL JUGADOR
     // ══════════════════════════════════════════════════════
+
+    private Pane playerEffectsPane;
 
     /**
      * Construye el tablero del jugador como diamantes isométricos
-     * mostrando los barcos (showShips = true).
+     * mostrando los barcos (showShips = true), manteniendo las imágenes de los barcos
+     * al frente (shipImagesPane.toFront()) sobre las baldosas e imágenes de impacto inferiores.
      */
     private void buildPlayerIsometricBoard() {
         if (playerBoardStack == null) return;
+
         if (playerIsoTilesPane == null) {
             playerIsoTilesPane = new Pane();
             playerIsoTilesPane.setMouseTransparent(true);
             playerBoardStack.getChildren().add(playerIsoTilesPane);
         }
+
         buildGenericIsometricBoard(
             playerIsoTilesPane, 
             playerBoard, 
@@ -464,10 +685,14 @@ public class PrincipalController {
             playerOriginX, 
             playerOriginY, 
             true);
+
+        if (shipImagesPane != null) {
+            shipImagesPane.toFront();
+        }
     }
 
     // ══════════════════════════════════════════════════════
-    //  CELL CREATION
+    //  CREACIÓN DE CASILLAS
     // ══════════════════════════════════════════════════════
 
     /**
@@ -507,7 +732,7 @@ public class PrincipalController {
     }
 
     // ══════════════════════════════════════════════════════
-    //  CELL VISUAL REFRESH
+    //  ACTUALIZACIÓN VISUAL DE CASILLAS
     // ══════════════════════════════════════════════════════
 
     /**
@@ -565,35 +790,48 @@ public class PrincipalController {
     }
 
     // ══════════════════════════════════════════════════════
-    //  SHOT HANDLER
+    //  MANEJADOR DE DISPAROS
     // ══════════════════════════════════════════════════════
 
     /**
      * Maneja el clic del jugador en el tablero enemigo.
+     * Coordina el disparo mediante {@link BatallaNavalFacade#disparaJugador}
+     * y cede el turno automáticamente a la máquina en caso de fallo (AGUA).
      */
     private void handleShot(int fila, int columna) {
+        if (facade != null && !facade.esTurnoJugador()) {
+            updateStatus("Es el turno de la máquina... espera.");
+            return;
+        }
+
         try {
-            var resultado = machineBoard.disparar(fila, columna);
+            EstadoDisparo resultado = (facade != null)
+                ? facade.disparaJugador(fila, columna)
+                : machineBoard.disparar(fila, columna);
+
             Casilla casilla = machineBoard.getCasillas()[fila][columna];
 
-            // Actualizar diamante isométrico
+            // Actualizar diamante isométrico y capas de superposición (Bomba, Boom, Agua)
             if (isoTiles[fila][columna] != null) {
                 applyIsoColor(isoTiles[fila][columna], casilla);
             }
+            buildIsometricBoard();
 
             switch (resultado) {
                 case AGUA:
-                    updateStatus("Agua... nada por ahí.");
+                    updateStatus("Agua... ¡Turno de la máquina!");
+                    if (lblTurn != null) lblTurn.setText("Turno: Máquina");
+                    javafx.application.Platform.runLater(this::ejecutarTurnoMaquina);
                     break;
                 case TOCADO:
-                    updateStatus("¡Tocado! Impacto en el barco enemigo.");
+                    updateStatus("¡Tocado! Impacto en el barco enemigo. ¡Sigues disparando!");
                     break;
                 case HUNDIDO:
-                    updateStatus("¡Barco enemigo hundido!");
+                    updateStatus("¡Barco enemigo hundido! ¡Sigues disparando!");
                     break;
                 case VICTORIA:
                     updateStatus("¡VICTORIA! Has hundido toda la flota enemiga.");
-                    lblTurn.setText("¡GANASTE!");
+                    if (lblTurn != null) lblTurn.setText("¡GANASTE!");
                     break;
             }
         } catch (Exception e) {
@@ -601,8 +839,47 @@ public class PrincipalController {
         }
     }
 
+    /**
+     * Ejecuta el turno automático de la máquina seleccionando casillas no disparadas
+     * del tablero del jugador mediante {@link BatallaNavalFacade#disparaMaquina}.
+     */
+    private void ejecutarTurnoMaquina() {
+        if (facade == null || facade.juegoTerminado() || facade.esTurnoJugador()) return;
+
+        java.util.Random rand = new java.util.Random();
+        int f, c;
+        Casilla[][] casillasJugador = playerBoard.getCasillas();
+
+        do {
+            f = rand.nextInt(Tablero.TAMANO);
+            c = rand.nextInt(Tablero.TAMANO);
+        } while (casillasJugador[f][c].getEstado() == EstadoCasilla.AGUA ||
+                 casillasJugador[f][c].getEstado() == EstadoCasilla.TOCADO ||
+                 casillasJugador[f][c].getEstado() == EstadoCasilla.HUNDIDO);
+
+        EstadoDisparo resultado = facade.disparaMaquina(f, c);
+        Casilla casillaDisparada = casillasJugador[f][c];
+
+        // Actualizar diamante isométrico del jugador y superposiciones (Fuego, Boom, Agua)
+        if (playerIsoTiles[f][c] != null) {
+            applyIsoColor(playerIsoTiles[f][c], casillaDisparada, true);
+        }
+        buildPlayerIsometricBoard();
+
+        if (resultado == EstadoDisparo.AGUA) {
+            updateStatus("La máquina disparó en (" + COLS[c] + (f + 1) + ") y dio en Agua. ¡Es tu turno!");
+            if (lblTurn != null) lblTurn.setText("Turno: Jugador");
+        } else if (resultado == EstadoDisparo.VICTORIA) {
+            updateStatus("DERROTA... La máquina ha hundido toda tu flota.");
+            if (lblTurn != null) lblTurn.setText("¡GAME OVER!");
+        } else {
+            updateStatus("¡La máquina impactó tu barco en (" + COLS[c] + (f + 1) + ")! Vuelve a disparar...");
+            javafx.application.Platform.runLater(this::ejecutarTurnoMaquina);
+        }
+    }
+
     // ══════════════════════════════════════════════════════
-    //  FLEET INFO PANELS
+    //  PANELES INFORMATIVOS DE FLOTA
     // ══════════════════════════════════════════════════════
 
     /**
@@ -628,7 +905,7 @@ public class PrincipalController {
     }
 
     // ══════════════════════════════════════════════════════
-    //  HELPERS
+    //  MÉTODOS AUXILIARES
     // ══════════════════════════════════════════════════════
 
     private void updateStatus(String message) {
@@ -654,7 +931,7 @@ public class PrincipalController {
     }
 
     // ══════════════════════════════════════════════════════
-    //  1. ISOMETRIC CONVERSION METHODS
+    //  1. CONVERSIÓN DE COORDENADAS ISOMÉTRICAS
     // ══════════════════════════════════════════════════════
 
     /**
@@ -676,7 +953,7 @@ public class PrincipalController {
 
     /**
      * Variante parametrizada — permite proyectar con orígenes y tileSize
-     * customizados (usado por el tablero del jugador que tiene otro StackPane).
+     * customizados compartiendo el mismo plano isométrico continuo.
      */
     private Point2D gridToScreen(int row, int col, double ox, double oy) {
         double sx = ox + (col - row) * (tileWidth  / 2.0);
@@ -685,15 +962,8 @@ public class PrincipalController {
     }
 
     /**
-     * Convierte coordenadas de pantalla (mouseX, mouseY) a [fila, columna].
-     * Inversión de la matriz isométrica:
-     *
-     *   dx = (mouseX - originX) / (tileWidth  / 2)
-     *   dy = (mouseY - originY) / (tileHeight / 2)
-     *   col = (dx + dy) / 2
-     *   row = (dy - dx) / 2
-     *
-     * @return int[]{fila, columna} o null si está fuera del tablero
+     * Convierte coordenadas de pantalla (mouseX, mouseY) a [fila, columna]
+     * en el tablero enemigo.
      */
     public int[] screenToGrid(double mouseX, double mouseY) {
         double dx = (mouseX - originX) / (tileWidth  / 2.0);
@@ -712,7 +982,7 @@ public class PrincipalController {
     }
 
     // ══════════════════════════════════════════════════════
-    //  2. DEBUG GRID OVERLAY
+    //  2. REJILLA DE DEPURACIÓN DE PROYECIÓN
     // ══════════════════════════════════════════════════════
 
     /**
@@ -767,7 +1037,7 @@ public class PrincipalController {
     }
 
     // ══════════════════════════════════════════════════════
-    //  3. INTERACTION & HIGHLIGHTING
+    //  3. INTERACCIÓN Y RESALTADO TÁCTICO DE CASILLAS
     // ══════════════════════════════════════════════════════
 
     /**
@@ -821,8 +1091,8 @@ public class PrincipalController {
                 highlight.setStroke(Color.rgb(231, 76, 60, 0.85));
                 highlight.setStrokeWidth(2.0);
             } else {
-                highlight.setFill(Color.rgb(243, 156, 18, 0.35)); // Naranja vibrante para casilla válida
-                highlight.setStroke(Color.rgb(243, 156, 18, 1.0));
+                highlight.setFill(Color.rgb(56, 189, 248, 0.35)); // Azul cian brillante táctico
+                highlight.setStroke(Color.rgb(56, 189, 248, 1.0));
                 highlight.setStrokeWidth(2.0);
             }
 
