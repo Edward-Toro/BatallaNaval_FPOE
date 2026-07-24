@@ -23,7 +23,14 @@ public class BatallaNavalFacade {
     }
 
     public void iniciarPartida() {
+
+        tableroJugador.reiniciar();
+        tableroMaquina.reiniciar();
+
+        tableroJugador.colocarFlotaAleatoria();
         tableroMaquina.colocarFlotaAleatoria();
+
+        turnoJugador = true;
     }
 
     public void colocarBarcoJugador(Barco barco, int fila, int columna, Orientacion orientacion)
@@ -32,14 +39,28 @@ public class BatallaNavalFacade {
     }
 
     public EstadoDisparo disparaJugador(int fila, int columna) {
+
         EstadoDisparo resultado = tableroMaquina.disparar(fila, columna);
-        turnoJugador = (resultado == EstadoDisparo.AGUA);
+
+        if (resultado == EstadoDisparo.AGUA) {
+            turnoJugador = false;
+        } else {
+            turnoJugador = true;
+        }
+
         return resultado;
     }
 
     public EstadoDisparo disparaMaquina(int fila, int columna) {
+
         EstadoDisparo resultado = tableroJugador.disparar(fila, columna);
-        turnoJugador = (resultado != EstadoDisparo.AGUA);
+
+        if (resultado == EstadoDisparo.AGUA) {
+            turnoJugador = true;
+        } else {
+            turnoJugador = false;
+        }
+
         return resultado;
     }
 

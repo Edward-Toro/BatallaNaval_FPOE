@@ -143,4 +143,22 @@ public class Tablero {
     public Queue<int[]> getHistorialDisparos() {
         return historialDisparos;
     }
+
+    public void reiniciar() {
+
+        historialDisparos.clear();
+
+        flota.reiniciar();
+
+        for (int f = 0; f < TAMANO; f++) {
+
+            for (int c = 0; c < TAMANO; c++) {
+
+                casillas[f][c] = new Casilla(f, c);
+
+            }
+
+        }
+
+    }
 }
