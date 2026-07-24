@@ -23,7 +23,14 @@ public class BatallaNavalFacade {
     }
 
     public void iniciarPartida() {
+
+        tableroJugador.reiniciar();
+        tableroMaquina.reiniciar();
+
+        tableroJugador.colocarFlotaAleatoria();
         tableroMaquina.colocarFlotaAleatoria();
+
+        turnoJugador = true;
     }
 
     public void colocarBarcoJugador(Barco barco, int fila, int columna, Orientacion orientacion)

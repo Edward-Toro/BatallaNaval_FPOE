@@ -33,4 +33,20 @@ public class Flota {
     public long contarHundidos() {
         return barcos.stream().filter(Barco::estaHundido).count();
     }
+
+    public void reiniciar() {
+
+        barcos.clear();
+
+        for (TipoBarco tipo : TipoBarco.values()) {
+
+            for (int i = 0; i < tipo.getCantidadPorFlota(); i++) {
+
+                barcos.add(BarcoFactory.crear(tipo));
+
+            }
+
+        }
+
+    }
 }
