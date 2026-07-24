@@ -6,6 +6,8 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -15,9 +17,17 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
+import org.example.batallanaval_fpoe.NavalBattleApp;
+import org.example.batallanaval_fpoe.model.Barco;
+import org.example.batallanaval_fpoe.model.BatallaNavalFacade;
 import org.example.batallanaval_fpoe.model.Casilla;
 import org.example.batallanaval_fpoe.model.EstadoCasilla;
 import org.example.batallanaval_fpoe.model.Tablero;
+import org.example.batallanaval_fpoe.model.TipoBarco;
 
 /**
  * Controlador principal — genera los tableros 10×10 visualmente
@@ -38,6 +48,7 @@ public class PrincipalController {
     @FXML private HBox machineFleetInfo;
 
     // ── Model ────────────────────────────────────────────
+    private BatallaNavalFacade facade;
     private Tablero playerBoard;
     private Tablero machineBoard;
 
@@ -47,6 +58,12 @@ public class PrincipalController {
 
     // ── Column letters ───────────────────────────────────
     private static final String[] COLS = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
+
+    // ── Ship images overlay ──────────────────────────────
+    private Pane shipImagesPane;
+    private final Map<Barco, ImageView> shipImageMap = new java.util.HashMap<>();
+    private final Map<TipoBarco, Image> imageCache = new EnumMap<>(TipoBarco.class);
+
 
     // ══════════════════════════════════════════════════════
     //  ISOMETRIC PROJECTION CONSTANTS
@@ -89,11 +106,21 @@ public class PrincipalController {
 
     @FXML
     public void initialize() {
-        playerBoard = new Tablero();
-        machineBoard = new Tablero();
+        // Solo UI estática — los tableros se configuran via setFacade()
+        buildFleetInfo(playerFleetInfo, "Jugador");
+        buildFleetInfo(machineFleetInfo, "Enemigo");
+        updateStatus("Preparando tableros...");
+    }
 
-        playerBoard.colocarFlotaAleatoria();
-        machineBoard.colocarFlotaAleatoria();
+    /**
+     * Inyecta el facade pre-configurado (con la flota del jugador ya colocada)
+     * y construye ambos tableros isometricos.
+     * Llamado por {@link NavalBattleApp#showGameScreen} despues de load().
+     */
+    public void setFacade(BatallaNavalFacade facade) {
+        this.facade = facade;
+        this.playerBoard = facade.getTableroJugador();
+        this.machineBoard = facade.getTableroMaquina();
 
         // ── Player isometric board setup ──
         playerBoardStack = (StackPane) playerBoardContainer.getParent();
@@ -103,14 +130,14 @@ public class PrincipalController {
         boardStack = (StackPane) machineBoardContainer.getParent();
         buildIsometricBoard();
 
-        buildFleetInfo(playerFleetInfo, "Jugador");
-        buildFleetInfo(machineFleetInfo, "Enemigo");
-
         setupResponsiveGrid();
         setupIsometricInteraction(boardStack);
 
+        // Pintar los barcos del jugador sobre su tablero
+        renderShipImages();
+
         updateStatus("Tu turno — selecciona una casilla del tablero enemigo");
-    }
+    }    
 
     // ══════════════════════════════════════════════════════
     //  RESPONSIVE GRID — recalcula al resize
@@ -148,6 +175,8 @@ public class PrincipalController {
      * del grid isométrico y centra la imagen (contain behavior).
      */
     private void recalculateGrid() {
+        if (boardStack == null || playerBoardStack == null) return;
+
         // ── Machine board dimensions ──
         Insets pad = boardStack.getPadding();
         double vw = boardStack.getWidth() - pad.getLeft() - pad.getRight();
@@ -192,6 +221,8 @@ public class PrincipalController {
         if (highlight != null && highlight.isVisible()) {
             highlight.setVisible(false);
         }
+
+        renderShipImages();
 
         System.out.printf(
             "[GRID] Recalculado — machine(W=%.0f H=%.0f) player(W=%.0f H=%.0f) | tileW=%.1f tileH=%.1f%n",
@@ -249,6 +280,48 @@ public class PrincipalController {
         container.getChildren().add(grid);
     }
 
+    /**
+ * Método genérico para construir la capa isométrica de cualquier tablero.
+ */
+    private void buildGenericIsometricBoard(
+        Pane targetPane, 
+        Tablero tablero, 
+        Polygon[][] tileArray, 
+        double ox, 
+        double oy, 
+        boolean showShips) {
+
+        if (targetPane == null || tablero == null) return;
+        targetPane.getChildren().clear();
+
+        int N = Tablero.TAMANO;
+        double hw = tileWidth / 2.0;
+        double hh = tileHeight / 2.0;
+
+        for (int sum = 0; sum <= 2 * (N - 1); sum++) {
+            for (int row = Math.max(0, sum - N + 1); row <= Math.min(sum, N - 1); row++) {
+                int col = sum - row;
+                Point2D center = gridToScreen(row, col, ox, oy);
+
+                Polygon tile = new Polygon(
+                    center.getX(),      center.getY() - hh,
+                    center.getX() + hw, center.getY(),
+                    center.getX(),      center.getY() + hh,
+                    center.getX() - hw, center.getY()
+                );
+
+                Casilla casilla = tablero.getCasillas()[row][col];
+                applyIsoColor(tile, casilla, showShips);
+
+                tile.setStroke(Color.web("#1e3a5f"));
+                tile.setStrokeWidth(0.8);
+
+                tileArray[row][col] = tile;
+                targetPane.getChildren().add(tile);
+            }
+        }
+}
+
     // ══════════════════════════════════════════════════════
     //  ISOMETRIC BOARD BUILDER
     // ══════════════════════════════════════════════════════
@@ -259,41 +332,89 @@ public class PrincipalController {
      * Orden de dibujado: back-to-front (mayor row+col al frente).
      */
     private void buildIsometricBoard() {
+        if (boardStack == null) return;
         if (isoTilesPane == null) {
             isoTilesPane = new Pane();
             isoTilesPane.setMouseTransparent(true);
-            // Insertar después del VBox (índice 1) para que quede encima del fondo
-            boardStack.getChildren().add(1, isoTilesPane);
+            boardStack.getChildren().add(isoTilesPane);
         }
-        isoTilesPane.getChildren().clear();
+        buildGenericIsometricBoard(
+            isoTilesPane, 
+            machineBoard, 
+            isoTiles, 
+            originX, 
+            originY, 
+            false);
 
-        int N = Tablero.TAMANO;
-        double hw = tileWidth  / 2.0;
-        double hh = tileHeight / 2.0;
+        if (highlight != null && !isoTilesPane.getChildren().contains(highlight)) {
+            isoTilesPane.getChildren().add(highlight);
+        }
+    }
 
-        // Back-to-front: dibujar por diagonales (row + col creciente)
-        for (int sum = 0; sum <= 2 * (N - 1); sum++) {
-            for (int row = Math.max(0, sum - N + 1); row <= Math.min(sum, N - 1); row++) {
-                int col = sum - row;
-                Point2D center = gridToScreen(row, col);
+    private void renderShipImages() {
+        if (playerBoardStack == null) return;
+        if (shipImagesPane == null) {
+            shipImagesPane = new Pane();
+            shipImagesPane.setMouseTransparent(true);
+            playerBoardStack.getChildren().add(shipImagesPane);
+        }
+        shipImagesPane.getChildren().clear();
+        shipImageMap.clear();
 
-                // Diamante: norte → este → sur → oeste
-                Polygon tile = new Polygon(
-                    center.getX(),      center.getY() - hh,
-                    center.getX() + hw, center.getY(),
-                    center.getX(),      center.getY() + hh,
-                    center.getX() - hw, center.getY()
-                );
+        if (playerBoard == null || playerBoard.getFlota() == null) return;
 
-                Casilla casilla = machineBoard.getCasillas()[row][col];
-                applyIsoColor(tile, casilla);
+        for (Barco barco : playerBoard.getFlota().getBarcos()) {
+            List<Casilla> casillas = barco.getCasillas();
+            if (casillas.isEmpty()) continue;
 
-                tile.setStroke(Color.web("#1e3a5f"));
-                tile.setStrokeWidth(0.8);
+            int n = casillas.size();
 
-                isoTiles[row][col] = tile;
-                isoTilesPane.getChildren().add(tile);
+            // ── Centro geometrico de las casillas en pantalla ──
+            double cx = 0, cy = 0;
+            for (Casilla c : casillas) {
+                Point2D p = gridToScreen(c.getFila(), c.getColumna(), playerOriginX, playerOriginY);
+                cx += p.getX();
+                cy += p.getY();
             }
+            cx /= n;
+            cy /= n;
+
+            // ── Determinar orientacion a partir de las casillas ──
+            boolean isHorizontal = n > 1
+                    ? (casillas.get(0).getFila() == casillas.get(1).getFila())
+                    : true;
+            
+            Image image = imageCache.computeIfAbsent(barco.getTipo(), tipo -> {
+                String path = switch (tipo) {
+                    case PORTAAVIONES -> "/barcosimg/Portaavion-8.png";
+                    case SUBMARINO   -> "/barcosimg/Submarino-8.png";
+                    case DESTRUCTOR  -> "/barcosimg/Destructor-8.png";
+                    case FRAGATA     -> "/barcosimg/fragata-8.png";
+                };
+                return new Image(getClass().getResourceAsStream(path));
+            });
+
+            ImageView iv = new ImageView(image);
+
+            double tileDiagonal = Math.hypot(tileWidth / 2.0, tileHeight / 2.0);
+            double scaleFactor = 0.9; // Ajusta el tamaño de la imagen
+
+            double targetWidth  = (tileDiagonal * n) * scaleFactor;
+            iv.setFitWidth(targetWidth);
+            iv.setPreserveRatio(true);
+
+            if (!isHorizontal) {
+                iv.setScaleY(-1); // Flip horizontal for vertical orientation
+                iv.setRotate(-180);
+            }
+
+            double calculatedHeight = targetWidth * (image.getHeight() / image.getWidth());
+
+            iv.setLayoutX(cx - targetWidth / 2.0);
+            iv.setLayoutY(cy - calculatedHeight / 2.0);
+
+            shipImagesPane.getChildren().add(iv);
+            shipImageMap.put(barco, iv);
         }
     }
 
@@ -330,40 +451,19 @@ public class PrincipalController {
      * mostrando los barcos (showShips = true).
      */
     private void buildPlayerIsometricBoard() {
+        if (playerBoardStack == null) return;
         if (playerIsoTilesPane == null) {
             playerIsoTilesPane = new Pane();
             playerIsoTilesPane.setMouseTransparent(true);
-            playerBoardStack.getChildren().add(1, playerIsoTilesPane);
+            playerBoardStack.getChildren().add(playerIsoTilesPane);
         }
-        playerIsoTilesPane.getChildren().clear();
-
-        int N = Tablero.TAMANO;
-        double hw = tileWidth  / 2.0;
-        double hh = tileHeight / 2.0;
-
-        // Back-to-front
-        for (int sum = 0; sum <= 2 * (N - 1); sum++) {
-            for (int row = Math.max(0, sum - N + 1); row <= Math.min(sum, N - 1); row++) {
-                int col = sum - row;
-                Point2D center = gridToScreen(row, col, playerOriginX, playerOriginY);
-
-                Polygon tile = new Polygon(
-                    center.getX(),      center.getY() - hh,
-                    center.getX() + hw, center.getY(),
-                    center.getX(),      center.getY() + hh,
-                    center.getX() - hw, center.getY()
-                );
-
-                Casilla casilla = playerBoard.getCasillas()[row][col];
-                applyIsoColor(tile, casilla, true);
-
-                tile.setStroke(Color.web("#1e3a5f"));
-                tile.setStrokeWidth(0.8);
-
-                playerIsoTiles[row][col] = tile;
-                playerIsoTilesPane.getChildren().add(tile);
-            }
-        }
+        buildGenericIsometricBoard(
+            playerIsoTilesPane, 
+            playerBoard, 
+            playerIsoTiles, 
+            playerOriginX, 
+            playerOriginY, 
+            true);
     }
 
     // ══════════════════════════════════════════════════════
@@ -678,23 +778,26 @@ public class PrincipalController {
      * @param boardPane el StackPane que contiene al VBox del tablero enemigo
      */
     public void setupIsometricInteraction(StackPane boardPane) {
+        if (machineBoardContainer != null) {
+            machineBoardContainer.setMouseTransparent(true);
+        }
+
         // Highlight polígono (se mueve con el cursor)
-        highlight = new Polygon();
-        highlight.setFill(Color.rgb(243, 156, 18, 0.25));
-        highlight.setStroke(Color.rgb(243, 156, 18, 0.8));
-        highlight.setStrokeWidth(2.0);
-        highlight.setMouseTransparent(true);
-        highlight.setVisible(false);
-        boardPane.getChildren().add(highlight);
+        if (highlight == null) {
+            highlight = new Polygon();
+            highlight.setMouseTransparent(true);
+            highlight.setVisible(false);
+        }
+
+        if (isoTilesPane != null && !isoTilesPane.getChildren().contains(highlight)) {
+            isoTilesPane.getChildren().add(highlight);
+        }
 
         // ── Mouse Moved: resaltar casilla bajo cursor ──
         boardPane.setOnMouseMoved((MouseEvent e) -> {
-            // Convertir coords del StackPane al área de contenido (restar padding)
             Insets pad = boardPane.getPadding();
             double mx = e.getX() - pad.getLeft();
             double my = e.getY() - pad.getTop();
-            double hw = tileWidth  / 2.0;
-            double hh = tileHeight / 2.0;
 
             int[] cell = screenToGrid(mx, my);
 
@@ -705,14 +808,26 @@ public class PrincipalController {
 
             int row = cell[0];
             int col = cell[1];
-            Point2D center = gridToScreen(row, col);
 
-            highlight.getPoints().setAll(
-                center.getX(),      center.getY() - hh,
-                center.getX() + hw, center.getY(),
-                center.getX(),      center.getY() + hh,
-                center.getX() - hw, center.getY()
-            );
+            if (isoTiles[row][col] == null) {
+                highlight.setVisible(false);
+                return;
+            }
+
+            // Feedback gráfico dinámico según el estado de la casilla
+            Casilla casilla = machineBoard.getCasillas()[row][col];
+            if (casilla.getEstado() != EstadoCasilla.VACIA && casilla.getEstado() != EstadoCasilla.OCUPADA) {
+                highlight.setFill(Color.rgb(231, 76, 60, 0.25)); // Rojo sutil para casilla ya disparada
+                highlight.setStroke(Color.rgb(231, 76, 60, 0.85));
+                highlight.setStrokeWidth(2.0);
+            } else {
+                highlight.setFill(Color.rgb(243, 156, 18, 0.35)); // Naranja vibrante para casilla válida
+                highlight.setStroke(Color.rgb(243, 156, 18, 1.0));
+                highlight.setStrokeWidth(2.0);
+            }
+
+            // Copiar exactamente los 4 vértices del diamante en esa posición
+            highlight.getPoints().setAll(isoTiles[row][col].getPoints());
             highlight.setVisible(true);
         });
 

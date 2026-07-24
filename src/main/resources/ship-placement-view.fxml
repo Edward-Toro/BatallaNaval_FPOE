@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.geometry.Rectangle2D?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefHeight="580.0" prefWidth="1200.0" styleClass="game-container" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.batallanaval_fpoe.controller.ShipPlacementController">
+
+   <children>
+      <!-- ════════════════════ NAV BAR ════════════════════ -->
+      <HBox alignment="CENTER" prefHeight="57.0" styleClass="nav-bar">
+         <children>
+            <HBox alignment="CENTER_LEFT">
+               <children>
+                  <ImageView fitHeight="77.0" fitWidth="338.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@Asset%20-8.png" />
+                     </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
+                     <HBox.margin>
+                        <Insets left="24.0" />
+                     </HBox.margin>
+                  </ImageView>
+               </children>
+            </HBox>
+            <Region prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
+            <Label styleClass="board-title" text="Configura tu flota">
+               <HBox.margin>
+                  <Insets right="24.0" />
+               </HBox.margin>
+            </Label>
+         </children>
+      </HBox>
+
+      <!-- ════════════════════ CONTENT ════════════════════ -->
+      <HBox alignment="CENTER" spacing="0" VBox.vgrow="ALWAYS">
+
+         <!-- ────── Board ────── -->
+         <VBox alignment="CENTER" styleClass="board-section" HBox.hgrow="ALWAYS">
+            <children>
+               <Label styleClass="board-title" text="Tu tablero" />
+               <StackPane alignment="CENTER" styleClass="board-panel" VBox.vgrow="ALWAYS" fx:id="boardStack">
+                  <children>
+                     <VBox alignment="CENTER" styleClass="isometric-grid" />
+                  </children>
+               </StackPane>
+            </children>
+            <HBox.margin>
+               <Insets left="16.0" />
+            </HBox.margin>
+         </VBox>
+
+         <!-- ────── Separator ────── -->
+         <Region prefWidth="16.0" styleClass="board-separator" />
+
+         <!-- ────── Side Panel ────── -->
+         <VBox alignment="TOP_CENTER" spacing="12" styleClass="side-panel" prefWidth="280">
+            <padding>
+               <Insets top="16.0" right="24.0" bottom="16.0" left="16.0" />
+            </padding>
+            <children>
+               <Label styleClass="board-title" text="Flota disponible" />
+               <VBox fx:id="shipPalette" spacing="8" VBox.vgrow="ALWAYS" />
+
+               <Separator>
+                  <HBox.margin>
+                     <Insets top="8.0" bottom="8.0" />
+                  </HBox.margin>
+               </Separator>
+
+               <Label fx:id="lblOrientation" styleClass="turn-indicator" text="Orientacion: Horizontal" />
+               <Button styleClass="btn-primary" text="Rotar (R)" onAction="#toggleOrientation" maxWidth="Infinity">
+                  <HBox.margin>
+                     <Insets bottom="4.0" />
+                  </HBox.margin>
+               </Button>
+
+               <Separator>
+                  <HBox.margin>
+                     <Insets top="4.0" bottom="4.0" />
+                  </HBox.margin>
+               </Separator>
+
+               <Label fx:id="lblProgress" text="0 / 10 barcos colocados" styleClass="turn-indicator" />
+
+               <Button fx:id="btnAutoPlace" styleClass="btn-primary" text="Auto-ubicar" onAction="#autoPlace" maxWidth="Infinity">
+                  <VBox.margin>
+                     <Insets top="8.0" />
+                  </VBox.margin>
+               </Button>
+
+               <Button fx:id="btnClear" styleClass="btn-danger" text="Limpiar tablero" onAction="#clearBoard" maxWidth="Infinity" />
+
+               <Region VBox.vgrow="ALWAYS" />
+
+               <Button fx:id="btnStart" styleClass="btn-success" text="!Iniciar Partida!" onAction="#startGame" maxWidth="Infinity" disable="true">
+                  <VBox.margin>
+                     <Insets bottom="8.0" />
+                  </VBox.margin>
+               </Button>
+            </children>
+         </VBox>
+      </HBox>
+
+      <!-- ════════════════════ STATUS BAR ════════════════════ -->
+      <HBox alignment="CENTER" spacing="16" styleClass="status-bar">
+         <children>
+            <Label fx:id="lblStatus" text="Arrastra los barcos al tablero - R para rotar - Click derecho para quitar" />
+         </children>
+      </HBox>
+   </children>
+</VBox>

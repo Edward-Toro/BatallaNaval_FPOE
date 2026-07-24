@@ -1,6 +1,7 @@
 module org.example.batallanaval_fpoe {
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.graphics;
 
     opens org.example.batallanaval_fpoe to javafx.fxml;
     exports org.example.batallanaval_fpoe;
