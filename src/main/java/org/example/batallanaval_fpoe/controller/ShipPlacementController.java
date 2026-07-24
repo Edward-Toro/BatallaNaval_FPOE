@@ -822,7 +822,7 @@ public class ShipPlacementController {
         try {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             NavalBattleApp app = new NavalBattleApp();
-            app.showGameScreen(stage, facade);
+            app.showGameScreen(stage, facade, true);
         } catch (IOException e) {
             updateStatus("Error al cargar la pantalla de juego");
             e.printStackTrace();

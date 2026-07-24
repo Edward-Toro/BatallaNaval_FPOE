@@ -9,8 +9,9 @@ import java.util.List;
  *
  * @author Daniel
  */
-public class Barco {
+public class Barco implements java.io.Serializable {
 
+    private static final long serialVersionUID = 1L;
     private final TipoBarco tipo;
     private final List<Casilla> casillas;
     private int impactos;

@@ -10,8 +10,9 @@ import org.example.batallanaval_fpoe.exception.PosicionInvalidaException;
  *
  * @author Daniel, Nicolas y Robert
  */
-public class BatallaNavalFacade {
+public class BatallaNavalFacade implements java.io.Serializable {
 
+    private static final long serialVersionUID = 1L;
     private final Tablero tableroJugador;
     private final Tablero tableroMaquina;
     private boolean turnoJugador;

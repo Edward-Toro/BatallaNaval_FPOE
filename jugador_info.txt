@@ -1,0 +1,3 @@
+nickname=elmasno
+barcosHundidosPorJugador=2
+barcosHundidosPropios=1

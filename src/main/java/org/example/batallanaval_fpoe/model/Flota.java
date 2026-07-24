@@ -9,8 +9,9 @@ import java.util.List;
  *
  * @author Daniel
  */
-public class Flota {
+public class Flota implements java.io.Serializable {
 
+    private static final long serialVersionUID = 1L;
     private final List<Barco> barcos;
 
     public Flota() {

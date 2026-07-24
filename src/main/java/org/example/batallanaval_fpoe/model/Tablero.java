@@ -16,15 +16,16 @@ import java.util.List;
  *
  * @author Daniel, Nicolas y Robert
  */
-public class Tablero {
+public class Tablero implements java.io.Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public static final int TAMANO = 10;
 
     private final Casilla[][] casillas;
     private final Flota flota;
     private final Queue<int[]> historialDisparos;
-    private final List<DisparoListener> listeners;
-
+    private transient List<DisparoListener> listeners;
     public Tablero() {
         this.casillas = new Casilla[TAMANO][TAMANO];
         for (int f = 0; f < TAMANO; f++) {
@@ -160,5 +161,14 @@ public class Tablero {
 
         }
 
+    }
+    /**
+     * Se ejecuta automáticamente al deserializar un Tablero desde disco.
+     * Como "listeners" es transient (no se guarda), hay que reconstruirlo
+     * vacío aquí para que el controlador pueda volver a suscribirse.
+     */
+    private void readObject(java.io.ObjectInputStream ois) throws java.io.IOException, ClassNotFoundException {
+        ois.defaultReadObject();
+        this.listeners = new ArrayList<>();
     }
 }

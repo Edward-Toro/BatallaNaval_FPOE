@@ -80,6 +80,7 @@ public class PrincipalController {
     private Tablero machineBoard;
     /** Termina partida*/
     private boolean partidaTerminada = false;
+    private String nickname = "Jugador";
 
     // ── Visual grid references ───────────────────────────
     /** Matriz 10×10 de nodos JavaFX para el tablero 2D plano del jugador. */
@@ -149,7 +150,12 @@ public class PrincipalController {
         buildFleetInfo(machineFleetInfo, "Enemigo");
         updateStatus("Preparando tableros...");
     }
-
+    /**
+     * Define el nickname del jugador actual, usado para el guardado automático.
+     */
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
     /**
      * Inyecta la fachada del modelo pre-configurada (con la flota colocada) y construye
      * los tableros isométricos e interactivos.
@@ -160,6 +166,10 @@ public class PrincipalController {
         this.facade = facade;
         this.playerBoard = facade.getTableroJugador();
         this.machineBoard = facade.getTableroMaquina();
+
+        // Patrón Observer real: cada disparo (propio o de la máquina) dispara el autoguardado
+        playerBoard.agregarListener((fila, columna, resultado) -> guardarPartidaActual());
+        machineBoard.agregarListener((fila, columna, resultado) -> guardarPartidaActual());
 
         // ── Player isometric board setup ──
         playerBoardStack = (StackPane) playerBoardContainer.getParent();
@@ -177,6 +187,15 @@ public class PrincipalController {
         renderShipImages();
 
         updateStatus("Tu turno — selecciona una casilla del tablero enemigo");
+    }
+    /**
+     * Persiste el estado actual de la partida (tableros serializados + archivo plano).
+     * Se ejecuta automáticamente ante cada disparo mediante el patrón Observer.
+     */
+    private void guardarPartidaActual() {
+        if (facade != null) {
+            org.example.batallanaval_fpoe.model.GameStateManager.guardarPartida(facade, nickname);
+        }
     }
 
     /**
@@ -922,6 +941,7 @@ public class PrincipalController {
      */
     private void mostrarFinDePartida(boolean gano) {
         partidaTerminada = true;
+        org.example.batallanaval_fpoe.model.GameStateManager.borrarPartidaGuardada();
         if (boardStack != null) {
             boardStack.setOnMouseClicked(null);
             boardStack.setOnMouseMoved(null);

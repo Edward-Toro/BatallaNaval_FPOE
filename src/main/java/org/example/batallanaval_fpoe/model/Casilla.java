@@ -5,8 +5,9 @@ package org.example.batallanaval_fpoe.model;
  *
  * @author Daniel
  */
-public class Casilla {
+public class Casilla implements java.io.Serializable {
 
+    private static final long serialVersionUID = 1L;
     private final int fila;
     private final int columna;
     private EstadoCasilla estado;
