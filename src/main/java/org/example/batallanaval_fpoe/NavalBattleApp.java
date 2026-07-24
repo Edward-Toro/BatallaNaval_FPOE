@@ -75,7 +75,6 @@ public class NavalBattleApp extends Application {
                 mainStage.setTitle("Batalla Naval — Configura tu flota");
                 mainStage.setScene(scene);
                 mainStage.show();
-                mainStage.setMaximized(true);
             } catch (IOException e) {
                 e.printStackTrace();
             }

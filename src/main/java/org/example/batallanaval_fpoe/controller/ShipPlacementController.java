@@ -23,6 +23,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -532,14 +533,15 @@ public class ShipPlacementController {
 
             // Actualizar label de conteo
             Label countLabel = (Label) card.getChildren().get(2);
-            int total = tipo.getCantidadPorFlota();
             countLabel.setText("\u00D7" + remaining + " restante" + (remaining != 1 ? "s" : ""));
 
             // Dimmear si no quedan
             if (remaining == 0) {
                 card.setOpacity(0.3);
                 card.setDisable(true);
-                card.getStyleClass().add("ship-card-placed");
+                if (!card.getStyleClass().contains("ship-card-placed")) {
+                    card.getStyleClass().add("ship-card-placed");
+                }
             } else {
                 card.setOpacity(1.0);
                 card.setDisable(false);

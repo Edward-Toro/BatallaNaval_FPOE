@@ -20,27 +20,34 @@
 }
 
 
+/* ════════════════════════════════════════════════════════
+   NEUMORPHIC SOFT UI DARK BUTTONS
+   ════════════════════════════════════════════════════════ */
+
 .btn-primary {
-    -fx-background-color: linear-gradient(to bottom, #13749a, #0c4e68);
-    -fx-text-fill: #ffffff;
+    -fx-background-color: linear-gradient(to bottom, #252b33, #181c22);
+    -fx-text-fill: #f1f5f9;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
-    -fx-background-radius: 6;
-    -fx-padding: 8 20 8 20;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-padding: 9 24 9 24;
     -fx-cursor: hand;
-    -fx-border-color: #27a2cb;
+    -fx-border-color: rgba(255, 255, 255, 0.12) rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.6) rgba(255, 255, 255, 0.1);
     -fx-border-width: 1;
-    -fx-border-radius: 6;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 4, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.65), 10, 0.2, 0, 4);
 }
 
 .btn-primary:hover {
-    -fx-background-color: linear-gradient(to bottom, #188dbb, #116282);
-    -fx-border-color: #38bdf8;
+    -fx-background-color: linear-gradient(to bottom, #2e3540, #1e242d);
+    -fx-border-color: rgba(56, 189, 248, 0.5);
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.75), 12, 0.3, 0, 4);
 }
 
 .btn-primary:pressed {
-    -fx-background-color: linear-gradient(to bottom, #0c4e68, #073547);
+    -fx-background-color: linear-gradient(to bottom, #13171c, #1b2027);
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.85), 8, 0.4, 0, 2);
     -fx-scale-x: 0.97;
     -fx-scale-y: 0.97;
 }
@@ -263,47 +270,39 @@
    ════════════════════════════════════════════════════════ */
 
 .ship-card {
-    -fx-background-color: linear-gradient(to bottom, #0f1d2e, #111f33);
+    -fx-background-color: #0f1d2e;
     -fx-background-radius: 8;
-    -fx-border-color: #2980b9;
+    -fx-border-color: #1e3a5f;
     -fx-border-width: 1;
     -fx-border-radius: 8;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 4, 0, 0, 1);
     -fx-padding: 8 10 8 10;
 }
 
 .ship-card:hover {
-    -fx-border-color: #5dade2;
-    -fx-background-color: linear-gradient(to bottom, #133750, #0e2a3d);
-    -fx-effect: dropshadow(gaussian, rgba(41, 128, 185, 0.3), 8, 0, 0, 0);
-}
-
-.ship-card:pressed {
-    -fx-background-color: linear-gradient(to bottom, #1a5276, #154360);
-    -fx-scale-x: 0.97;
-    -fx-scale-y: 0.97;
+    -fx-border-color: #38bdf8;
+    -fx-background-color: #13253a;
 }
 
 .ship-card-name {
-    -fx-text-fill: #aeb6bf;
+    -fx-text-fill: #e2e8f0;
     -fx-font-size: 12px;
     -fx-font-weight: bold;
 }
 
 .ship-card-count {
-    -fx-text-fill: #5d7b96;
+    -fx-text-fill: #94a3b8;
     -fx-font-size: 11px;
 }
 
 .ship-card-placed {
-    -fx-border-color: #1e3a5f;
+    -fx-border-color: #122234;
     -fx-opacity: 0.3;
 }
 
 .ship-card-placed:hover {
-    -fx-background-color: linear-gradient(to bottom, #0f1d2e, #111f33);
-    -fx-effect: none;
+    -fx-background-color: #0f1d2e;
+    -fx-border-color: #122234;
     -fx-cursor: default;
 }
 
@@ -319,68 +318,77 @@
     -fx-border-width: 1;
     -fx-border-radius: 12;
     -fx-padding: 16;
+    -fx-min-width: 420px;
+    -fx-pref-width: 420px;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 8, 0, 0, 2);
 }
 
 
 /* ════════════════════════════════════════════════════════
-   BUTTON VARIANTS — DANGER & SUCCESS
+   BUTTON VARIANTS — DANGER & SUCCESS (NEUMORPHIC)
    ════════════════════════════════════════════════════════ */
 
 .btn-danger {
-    -fx-background-color: linear-gradient(to bottom, #922b21, #7b241c);
-    -fx-text-fill: #ecf0f1;
+    -fx-background-color: linear-gradient(to bottom, #3b2224, #261617);
+    -fx-text-fill: #fca5a5;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
-    -fx-background-radius: 6;
-    -fx-padding: 8 20 8 20;
+    -fx-background-radius: 30;
+    -fx-border-radius: 30;
+    -fx-padding: 9 24 9 24;
     -fx-cursor: hand;
-    -fx-border-color: #e74c3c;
+    -fx-border-color: rgba(239, 68, 68, 0.4) rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.6) rgba(239, 68, 68, 0.2);
     -fx-border-width: 1;
-    -fx-border-radius: 6;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 4, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.65), 10, 0.2, 0, 4);
 }
 
 .btn-danger:hover {
-    -fx-background-color: linear-gradient(to bottom, #a93226, #922b21);
-    -fx-border-color: #ec7063;
+    -fx-background-color: linear-gradient(to bottom, #4a282b, #2f1a1c);
+    -fx-border-color: #f87171;
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(239, 68, 68, 0.4), 12, 0.3, 0, 4);
 }
 
 .btn-danger:pressed {
-    -fx-background-color: linear-gradient(to bottom, #7b241c, #641e16);
+    -fx-background-color: linear-gradient(to bottom, #1d1011, #281718);
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.85), 8, 0.4, 0, 2);
     -fx-scale-x: 0.97;
     -fx-scale-y: 0.97;
 }
 
 .btn-success {
-    -fx-background-color: linear-gradient(to bottom, #1e8449, #196f3d);
-    -fx-text-fill: #ecf0f1;
+    -fx-background-color: linear-gradient(to bottom, #1e3a2b, #13261c);
+    -fx-text-fill: #86efac;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
-    -fx-background-radius: 6;
-    -fx-padding: 10 24 10 24;
+    -fx-background-radius: 30;
+    -fx-border-radius: 30;
+    -fx-padding: 10 26 10 26;
     -fx-cursor: hand;
-    -fx-border-color: #27ae60;
+    -fx-border-color: rgba(34, 197, 94, 0.4) rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.6) rgba(34, 197, 94, 0.2);
     -fx-border-width: 1;
-    -fx-border-radius: 6;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 6, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.65), 10, 0.2, 0, 4);
 }
 
 .btn-success:hover {
-    -fx-background-color: linear-gradient(to bottom, #27ae60, #1e8449);
-    -fx-border-color: #52be80;
+    -fx-background-color: linear-gradient(to bottom, #264a37, #193325);
+    -fx-border-color: #4ade80;
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(34, 197, 94, 0.4), 12, 0.3, 0, 4);
 }
 
 .btn-success:pressed {
-    -fx-background-color: linear-gradient(to bottom, #196f3d, #145a32);
+    -fx-background-color: linear-gradient(to bottom, #0e1c14, #15291e);
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.85), 8, 0.4, 0, 2);
     -fx-scale-x: 0.97;
     -fx-scale-y: 0.97;
 }
 
 .btn-success:disabled {
-    -fx-background-color: linear-gradient(to bottom, #1a3a2a, #152e22);
-    -fx-text-fill: #5d7b6a;
-    -fx-border-color: #1e3a2f;
-    -fx-cursor: default;
+    -fx-background-color: linear-gradient(to bottom, #1a231f, #131a17);
+    -fx-text-fill: #4b6357;
+    -fx-border-color: rgba(255, 255, 255, 0.04);
+    -fx-opacity: 0.5;
     -fx-effect: none;
+    -fx-cursor: default;
 }
