@@ -19,7 +19,7 @@
          <children>
             <HBox alignment="CENTER_LEFT">
                <children>
-                  <ImageView fitHeight="77.0" fitWidth="338.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fitHeight="60.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@Asset%20-8.png" />
                      </image>
@@ -27,7 +27,7 @@
                         <Rectangle2D />
                      </viewport>
                      <HBox.margin>
-                        <Insets left="24.0" />
+                        <Insets top="10.0" bottom="10.0" left="24.0" right="16.0" />
                      </HBox.margin>
                   </ImageView>
                </children>
@@ -35,7 +35,7 @@
             <Region prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
             <HBox alignment="CENTER_RIGHT" spacing="12">
                <children>
-                  <Button fx:id="btnNewGame" mnemonicParsing="false" styleClass="btn-primary" text="Nueva Partida" />
+                  <Button fx:id="btnNewGame" mnemonicParsing="false" onAction="#onNewGame" styleClass="btn-primary" text="Nueva Partida" />
                   <Button fx:id="btnShowMachine" mnemonicParsing="false" onAction="#showMachine" styleClass="btn-primary" text="Ver Máquina">
                      <HBox.margin>
                         <Insets right="24.0" />
